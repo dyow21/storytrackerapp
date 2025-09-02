@@ -1,0 +1,17 @@
+To: dyow21@gmail.com
+Subject: Test: Solutions Stories for California
+Date: 2025-07-21 15:48:16.572110
+
+
+Hello!
+
+This is a test email from your Solutions Story Tracker subscription.
+
+Here are some recent stories:
+
+
+Best regards,
+Solutions Story Tracker App
+
+---
+This is a simulated email. In production, this would be sent via SMTP.

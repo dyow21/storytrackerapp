@@ -1,0 +1,26 @@
+To: dyow21@gmail.com
+Subject: Test: Solutions Stories for Arizona
+Date: 2025-07-21 14:56:18.587087
+
+
+Hello!
+
+This is a test email from your Solutions Story Tracker subscription.
+
+Here are some recent stories:
+
+1. Skip to main content
+   Read more: https://storytracker.solutionsjournalism.org/index.html#main-content
+
+2. Who We Are
+   Read more: https://www.solutionsjournalism.org/who-we-are
+
+3. What Is Solutions Journalism?
+   Read more: https://www.solutionsjournalism.org/who-we-are/mission
+
+
+Best regards,
+Solutions Story Tracker App
+
+---
+This is a simulated email. In production, this would be sent via SMTP.

@@ -58,25 +58,20 @@ class BrowseScreen(Screen):
         # Search controls with proper sizing
         search_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=50, spacing=10)
 
-        search_layout.add_widget(Label(text='State:', size_hint_x=None, width=60))
+        search_layout.add_widget(Label(text='Issue:', size_hint_x=None, width=60))
 
-        # US States list
-        us_states = [
-            'All States', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
-            'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii',
-            'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
-            'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
-            'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska',
-            'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York',
-            'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon',
-            'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
-            'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
-            'West Virginia', 'Wisconsin', 'Wyoming'
+        # Issue Areas list (based on common solutions journalism topics)
+        issue_areas = [
+            'All Issues', 'Education', 'Health', 'Housing', 'Environment', 'Criminal Justice',
+            'Economic Development', 'Democracy & Governance', 'Immigration', 'Transportation',
+            'Food Security', 'Mental Health', 'Community Development', 'Technology',
+            'Energy', 'Agriculture', 'Social Services', 'Arts & Culture', 'Youth Development',
+            'Senior Services', 'Public Safety', 'Infrastructure', 'Workforce Development'
         ]
 
         self.browse_state_spinner = Spinner(
-            text='All States',
-            values=us_states,
+            text='All Issues',
+            values=issue_areas,
             size_hint_x=0.6
         )
         search_layout.add_widget(self.browse_state_spinner)
@@ -119,39 +114,39 @@ class BrowseScreen(Screen):
         self.manager.current = 'subscription'
 
     def search_stories(self, instance):
-        """Search for stories based on selected state"""
-        state = self.browse_state_spinner.text
+        """Search for stories based on selected issue area"""
+        issue_area = self.browse_state_spinner.text
 
-        self.browse_status_label.text = f"Searching for stories in {state}..."
+        self.browse_status_label.text = f"Searching for stories about {issue_area}..."
 
         # Clear previous articles
         self.articles_layout.clear_widgets()
 
         # Run search in thread
-        threading.Thread(target=self._search_stories_thread, args=(state,)).start()
+        threading.Thread(target=self._search_stories_thread, args=(issue_area,)).start()
 
-    def _search_stories_thread(self, state):
+    def _search_stories_thread(self, issue_area):
         """Search for stories in a separate thread"""
         try:
             # Use the existing scrape_stories method but get more articles
-            articles = self.app_instance.scrape_stories(state if state != 'All States' else None, limit=15)
+            articles = self.app_instance.scrape_stories(issue_area if issue_area != 'All Issues' else None, limit=15)
             self.current_articles = articles
 
             # Update UI on main thread
-            Clock.schedule_once(lambda dt: self._display_articles(articles, state), 0)
+            Clock.schedule_once(lambda dt: self._display_articles(articles, issue_area), 0)
 
         except Exception as e:
             Clock.schedule_once(
                 lambda dt: self._show_search_error(str(e)), 0
             )
 
-    def _display_articles(self, articles, state):
+    def _display_articles(self, articles, issue_area):
         """Display articles in the scrollable list"""
         if not articles:
-            self.browse_status_label.text = f"No articles found for {state}"
+            self.browse_status_label.text = f"No articles found about {issue_area}"
             return
 
-        self.browse_status_label.text = f"Found {len(articles)} articles for {state}"
+        self.browse_status_label.text = f"Found {len(articles)} articles about {issue_area}"
 
         # Clear existing widgets
         self.articles_layout.clear_widgets()
@@ -380,27 +375,22 @@ class SubscriptionScreen(Screen):
         email_layout.add_widget(self.email_input)
         form_layout.add_widget(email_layout)
 
-        # State selection
+        # Issue selection
         state_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=50, spacing=10)
-        state_layout.add_widget(Label(text='State:', size_hint_x=None, width=100, halign='right'))
+        state_layout.add_widget(Label(text='Issue:', size_hint_x=None, width=100, halign='right'))
 
-        # US States list
-        us_states = [
-            'All States', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
-            'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii',
-            'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
-            'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
-            'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska',
-            'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York',
-            'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon',
-            'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
-            'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
-            'West Virginia', 'Wisconsin', 'Wyoming'
+        # Issue Areas list (same as browse screen)
+        issue_areas = [
+            'All Issues', 'Education', 'Health', 'Housing', 'Environment', 'Criminal Justice',
+            'Economic Development', 'Democracy & Governance', 'Immigration', 'Transportation',
+            'Food Security', 'Mental Health', 'Community Development', 'Technology',
+            'Energy', 'Agriculture', 'Social Services', 'Arts & Culture', 'Youth Development',
+            'Senior Services', 'Public Safety', 'Infrastructure', 'Workforce Development'
         ]
 
         self.state_spinner = Spinner(
-            text='All States',
-            values=us_states,
+            text='All Issues',
+            values=issue_areas,
             size_hint_x=0.7
         )
         state_layout.add_widget(self.state_spinner)
@@ -603,16 +593,16 @@ class StoryTrackerApp(App):
         conn.commit()
         conn.close()
 
-    def scrape_stories(self, state=None, limit=5):
+    def scrape_stories(self, issue_area=None, limit=5):
         """Scrape stories from the Solutions Story Tracker website"""
         try:
             base_url = "https://storytracker.solutionsjournalism.org/"
 
-            # Build search URL with state filter if specified
-            if state and state != 'All States':
-                # Use the form parameters we discovered
+            # Build search URL with issue area filter if specified
+            if issue_area and issue_area != 'All Issues':
+                # Use the form parameters we discovered for issue areas
                 search_params = {
-                    'location-of-response-state[]': state,
+                    'issue-areas[]': issue_area,
                     'search_stories': 'Search'
                 }
                 # Use POST method as forms typically do
@@ -695,11 +685,11 @@ class StoryTrackerApp(App):
                     continue
 
             print(f"Successfully processed {len(stories)} stories")
-            return stories if stories else self.get_fallback_stories(state, limit)
+            return stories if stories else self.get_fallback_stories(issue_area, limit)
 
         except Exception as e:
             print(f"Error scraping stories: {e}")
-            return self.get_fallback_stories(state, limit)
+            return self.get_fallback_stories(issue_area, limit)
 
     def get_headers(self):
         """Get request headers that work with the site"""
@@ -808,7 +798,6 @@ class StoryTrackerApp(App):
                 'ap.org': 'Associated Press',
                 'usatoday.com': 'USA Today',
                 'wsj.com': 'The Wall Street Journal',
-                'latimes.com': 'Los Angeles Times',
                 'chicagotribune.com': 'Chicago Tribune',
                 'sfchronicle.com': 'San Francisco Chronicle',
                 'miamiherald.com': 'Miami Herald',
@@ -840,47 +829,103 @@ class StoryTrackerApp(App):
         except Exception as e:
             return "News Outlet"
 
-    def get_fallback_stories(self, state, limit):
+    def get_fallback_stories(self, issue_area, limit):
         """Return fallback stories if scraping fails"""
-        fallback_stories = [
-            {
-                'title': 'How Rural Hospitals Are Using Telemedicine to Save Lives',
-                'url': 'https://www.npr.org/sections/health-shots/2024/12/01/rural-hospitals-telemedicine-success',
-                'outlet': 'NPR',
-                'story_tracker_url': 'https://storytracker.solutionsjournalism.org/stories/telemedicine-rural-hospitals'
-            },
-            {
-                'title': 'Community Land Trusts: A National Model for Affordable Housing',
-                'url': 'https://www.washingtonpost.com/business/2024/11/15/community-land-trusts-affordable-housing/',
-                'outlet': 'The Washington Post',
-                'story_tracker_url': 'https://storytracker.solutionsjournalism.org/stories/community-land-trusts'
-            },
+        # Issue-specific fallback stories
+        issue_stories = {
+            'Health': [
+                {
+                    'title': 'How Rural Hospitals Are Using Telemedicine to Save Lives',
+                    'url': 'https://www.npr.org/sections/health-shots/2024/12/01/rural-hospitals-telemedicine-success',
+                    'outlet': 'NPR'
+                },
+                {
+                    'title': 'Community Health Workers Bridge Care Gaps',
+                    'url': 'https://www.washingtonpost.com/health/2024/11/20/community-health-workers-success/',
+                    'outlet': 'The Washington Post'
+                }
+            ],
+            'Housing': [
+                {
+                    'title': 'Community Land Trusts: A National Model for Affordable Housing',
+                    'url': 'https://www.washingtonpost.com/business/2024/11/15/community-land-trusts-affordable-housing/',
+                    'outlet': 'The Washington Post'
+                },
+                {
+                    'title': 'How Housing First Programs End Chronic Homelessness',
+                    'url': 'https://www.nytimes.com/2024/10/15/us/housing-first-homelessness.html',
+                    'outlet': 'The New York Times'
+                }
+            ],
+            'Criminal Justice': [
+                {
+                    'title': 'Mental Health Courts: A Growing Solution to Mass Incarceration',
+                    'url': 'https://www.themarshallproject.org/2024/11/08/mental-health-courts-mass-incarceration-solution',
+                    'outlet': 'The Marshall Project'
+                },
+                {
+                    'title': 'Community Violence Intervention Programs Show Results',
+                    'url': 'https://www.pewtrusts.org/en/research-and-analysis/articles/2024/12/10/community-violence-intervention-data-driven-prevention',
+                    'outlet': 'The Pew Charitable Trusts'
+                }
+            ],
+            'Environment': [
+                {
+                    'title': 'Green Infrastructure: How Cities Are Fighting Climate Change',
+                    'url': 'https://www.reuters.com/sustainability/climate-energy/cities-green-infrastructure-climate-change-2024-12-03/',
+                    'outlet': 'Reuters'
+                },
+                {
+                    'title': 'How Community Solar Is Democratizing Clean Energy',
+                    'url': 'https://www.csmonitor.com/Environment/2024/1118/community-solar-democratizing-clean-energy',
+                    'outlet': 'The Christian Science Monitor'
+                }
+            ],
+            'Education': [
+                {
+                    'title': 'How Digital Equity Programs Bridge the Homework Gap',
+                    'url': 'https://www.edweek.org/technology/how-digital-equity-programs-bridge-homework-gap/2024/10',
+                    'outlet': 'Education Week'
+                },
+                {
+                    'title': 'Community Schools Transform Neighborhoods',
+                    'url': 'https://www.npr.org/2024/11/12/education/community-schools-transform-neighborhoods',
+                    'outlet': 'NPR'
+                }
+            ]
+        }
+
+        # General fallback stories
+        general_stories = [
             {
                 'title': 'How Participatory Budgeting Is Strengthening Democracy',
                 'url': 'https://www.nytimes.com/2024/10/20/us/participatory-budgeting-democracy.html',
-                'outlet': 'The New York Times',
-                'story_tracker_url': 'https://storytracker.solutionsjournalism.org/stories/participatory-budgeting'
+                'outlet': 'The New York Times'
             },
             {
-                'title': 'Mental Health Courts: A Growing Solution to Mass Incarceration',
-                'url': 'https://www.themarshallproject.org/2024/11/08/mental-health-courts-mass-incarceration-solution',
-                'outlet': 'The Marshall Project',
-                'story_tracker_url': 'https://storytracker.solutionsjournalism.org/stories/mental-health-courts'
+                'title': 'Food Recovery Programs Fight Hunger and Food Waste',
+                'url': 'https://www.usatoday.com/story/news/2024/11/25/food-recovery-programs-hunger-waste/12345678901/',
+                'outlet': 'USA Today'
             },
             {
-                'title': 'Green Infrastructure: How Cities Are Fighting Climate Change',
-                'url': 'https://www.reuters.com/sustainability/climate-energy/cities-green-infrastructure-climate-change-2024-12-03/',
-                'outlet': 'Reuters',
-                'story_tracker_url': 'https://storytracker.solutionsjournalism.org/stories/green-infrastructure'
+                'title': 'Refugee Integration Programs Transform Communities Nationwide',
+                'url': 'https://www.pbs.org/newshour/nation/refugee-integration-programs-transform-communities',
+                'outlet': 'PBS NewsHour'
             }
         ]
 
-        return fallback_stories[:limit]
+        # Get issue-specific stories if available, otherwise use general stories
+        if issue_area and issue_area in issue_stories:
+            available_stories = issue_stories[issue_area] + general_stories
+        else:
+            available_stories = general_stories
+
+        return available_stories[:limit]
 
     def start_subscription(self, instance):
         """Start the subscription process"""
         email = self.subscription_screen.email_input.text.strip()
-        state = self.subscription_screen.state_spinner.text
+        issue_area = self.subscription_screen.state_spinner.text
         frequency = self.subscription_screen.freq_spinner.text
 
         # Validate inputs
@@ -896,12 +941,12 @@ class StoryTrackerApp(App):
             cursor.execute('''
                 INSERT OR REPLACE INTO users (email, state, frequency, last_sent)
                 VALUES (?, ?, ?, ?)
-            ''', (email, state, frequency, datetime.now()))
+            ''', (email, issue_area, frequency, datetime.now()))
 
             conn.commit()
             conn.close()
 
-            self.subscription_screen.status_label.text = f"Subscription started for {email}!\nFrequency: {frequency}, State: {state}"
+            self.subscription_screen.status_label.text = f"Subscription started for {email}!\nFrequency: {frequency}, Issue: {issue_area}"
             self.show_popup("Success",
                             "Subscription created successfully!\nTest emails will be saved to 'sent_emails' folder.")
 
@@ -909,17 +954,17 @@ class StoryTrackerApp(App):
             self.show_popup("Error", f"Failed to create subscription: {str(e)}")
 
     def preview_stories(self, instance):
-        """Preview stories for the selected state"""
-        state = self.subscription_screen.state_spinner.text if self.subscription_screen.state_spinner.text != 'All States' else None
+        """Preview stories for the selected issue area"""
+        issue_area = self.subscription_screen.state_spinner.text if self.subscription_screen.state_spinner.text != 'All Issues' else None
 
         self.subscription_screen.status_label.text = "Fetching stories..."
 
         # Run in thread to avoid blocking UI
-        threading.Thread(target=self._preview_stories_thread, args=(state,)).start()
+        threading.Thread(target=self._preview_stories_thread, args=(issue_area,)).start()
 
-    def _preview_stories_thread(self, state):
+    def _preview_stories_thread(self, issue_area):
         """Preview stories in a separate thread"""
-        stories = self.scrape_stories(state, limit=3)
+        stories = self.scrape_stories(issue_area, limit=3)
 
         # Update UI on main thread
         Clock.schedule_once(lambda dt: self._show_preview_popup(stories), 0)
@@ -962,27 +1007,27 @@ class StoryTrackerApp(App):
     def test_email(self, instance):
         """Send a test email (simulate by saving to file)"""
         email = self.subscription_screen.email_input.text.strip()
-        state = self.subscription_screen.state_spinner.text if self.subscription_screen.state_spinner.text != 'All States' else None
+        issue_area = self.subscription_screen.state_spinner.text if self.subscription_screen.state_spinner.text != 'All Issues' else None
 
         if not email or '@' not in email:
             self.show_popup("Error", "Please enter a valid email address")
             return
 
         self.subscription_screen.status_label.text = "Preparing test email..."
-        threading.Thread(target=self._test_email_thread, args=(email, state)).start()
+        threading.Thread(target=self._test_email_thread, args=(email, issue_area)).start()
 
-    def _test_email_thread(self, email, state):
+    def _test_email_thread(self, email, issue_area):
         """Send test email in a separate thread"""
         # Check if user selected a specific article
         if hasattr(self, 'selected_article') and self.selected_article:
             stories = [self.selected_article]
             subject_prefix = "Selected Article: "
         else:
-            stories = self.scrape_stories(state, limit=3)
+            stories = self.scrape_stories(issue_area, limit=3)
             subject_prefix = "Test: "
 
         # Create email content
-        subject = f"{subject_prefix}Solutions Stories for {state if state else 'All States'}"
+        subject = f"{subject_prefix}Solutions Stories about {issue_area if issue_area else 'All Issues'}"
 
         email_content = f"""
 Hello!

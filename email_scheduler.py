@@ -14,7 +14,7 @@ class EmailScheduler:
     def scrape_stories(self, state=None, limit=5):
         """Scrape stories from the Solutions Story Tracker website"""
         try:
-            base_url = "https://storytracker.solutionsjournalism.org/"
+            base_url = "ç
 
             if state and state != 'All States':
                 url = f"{base_url}?location={state.replace(' ', '+')}"
