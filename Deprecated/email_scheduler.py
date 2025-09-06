@@ -14,7 +14,7 @@ class EmailScheduler:
     def scrape_stories(self, state=None, limit=5):
         """Scrape stories from the Solutions Story Tracker website"""
         try:
-            base_url = "ç
+            base_url = "https://storytracker.solutionsjournalism.org/"
 
             if state and state != 'All States':
                 url = f"{base_url}?location={state.replace(' ', '+')}"
@@ -140,7 +140,7 @@ Delivered: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """
 
         # Save to file (simulating email send)
-        os.makedirs('sent_emails', exist_ok=True)
+        os.makedirs('../sent_emails', exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_email = email.replace('@', '_at_').replace('.', '_')
         filename = f"sent_emails/{frequency.lower()}_{safe_email}_{timestamp}.txt"

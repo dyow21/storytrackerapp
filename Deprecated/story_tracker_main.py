@@ -562,7 +562,7 @@ class StoryTrackerApp(App):
 
     def init_database(self):
         """Initialize SQLite database to track users and sent stories"""
-        self.db_path = 'story_tracker.db'
+        self.db_path = '../story_tracker.db'
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -1050,7 +1050,7 @@ This is a simulated email. In production, this would be sent via SMTP.
 """
 
         # Save to file (simulating email send)
-        os.makedirs('sent_emails', exist_ok=True)
+        os.makedirs('../sent_emails', exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"sent_emails/test_email_{timestamp}.txt"
 
